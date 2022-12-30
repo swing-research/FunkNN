@@ -1,0 +1,14 @@
+epochs_aeder = 200 # number of epochs to train autoencoder
+epochs_flow = 200 # number of epochs to train flow
+flow_depth = 5
+latent_dim = 256 # Latent dimension of the flow model
+batch_size = 64
+dataset = 'celeb-hq'
+gpu_num = 0 # GPU number
+exp_desc = 'default' # Add a small descriptor to the experiment
+image_size = 128 # Resolution of the dataset
+c = 3 # Number of channels of the dataset
+train_aeder = True # Train autoencoder or just reload
+train_flow = True # Train flow or just reload
+restore_aeder = False # Restore the trained autoencoder if exists
+restore_flow = False # Restore the trained flow if exists
