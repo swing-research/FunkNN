@@ -57,7 +57,7 @@ python3 IP_solver.py
 ```
 
 ## Citation
-If you find the code or our dataset useful in your research, please consider citing the paper.
+If you find the code useful in your research, please consider citing the paper.
 
 ```
 @article{khorashadizadeh2022funknn,
