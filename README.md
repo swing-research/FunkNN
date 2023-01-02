@@ -62,7 +62,7 @@ If you find the code useful in your research, please consider citing the paper.
 ```
 @article{khorashadizadeh2022funknn,
   title={FunkNN: Neural Interpolation for Functional Generation},
-  author={Khorashadizadeh, AmirEhsan and Chaman, Anadi and Debarnot, Valentin and Harandi, Dokmani{\'c}, Ivan},
+  author={Khorashadizadeh, AmirEhsan and Chaman, Anadi and Debarnot, Valentin and Dokmani{\'c}, Ivan},
   journal={arXiv preprint arXiv:2212.14042},
   year={2022}
 }
