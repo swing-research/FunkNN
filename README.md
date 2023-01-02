@@ -6,7 +6,7 @@
 
 This repository is the official Pytorch implementation of "[FunkNN: Neural Interpolation for Functional Generation](https://arxiv.org/abs/2212.14042)".
 
-| [**Project Page**]()  | 
+| [**Project Page**](https://sada.dmi.unibas.ch/en/research/implicit-neural-representation)  | 
 
 
 <p float="center">
