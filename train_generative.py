@@ -264,7 +264,7 @@ if train_flow:
         
         
         if (ep + 1) % plot_per_num_epoch == 0 or ep + 1 == epochs_flow:
-            samples_folder = os.path.join(exp_path, 'Generated_samples')
+            samples_folder = os.path.join(exp_path, 'Results')
             if not os.path.exists(samples_folder):
                 os.mkdir(samples_folder)
             image_path_generated = os.path.join(

@@ -122,21 +122,6 @@ def batch_sampling(image_recon, coords, c, model):
 def batch_grad(image_recon, coords, c, model):
     s = 64
     
-    out_grads = np.zeros([np.shape(coords)[0], np.shape(coords)[1]])
-    for i in range(np.shape(coords)[1]//s):
-        
-        batch_coords = coords[:,i*s: (i+1)*s]
-        out = model(batch_coords, image_recon)
-        out_grad = gradient(out, batch_coords)
-        out_grad = torch.sqrt(torch.sum(torch.pow(out_grad,2) , axis = 2)).detach().cpu().numpy()
-        out_grads[:,i*s: (i+1)*s] = out_grad
-        
-    return out_grads
-
-
-def batch_grad_pde(image_recon, coords, c, model):
-    s = 64
-    
     out_grads = np.zeros([np.shape(coords)[0], np.shape(coords)[1], 2])
     for i in range(np.shape(coords)[1]//s):
         
@@ -160,6 +145,21 @@ def batch_laplace(image_recon, coords, c, model):
         out_laplaces[:,i*s: (i+1)*s] = out_laplace
         
     return out_laplaces
+
+
+def batch_grad_pde(image_recon, coords, c, model):
+    s = 64
+    
+    out_grads = np.zeros([np.shape(coords)[0], np.shape(coords)[1], 2])
+    for i in range(np.shape(coords)[1]//s):
+        
+        batch_coords = coords[:,i*s: (i+1)*s]
+        out = model(batch_coords, image_recon)
+        out_grad = gradient(out, batch_coords).detach().cpu().numpy()
+        out_grads[:,i*s: (i+1)*s] = out_grad
+        
+    return out_grads
+
 
 
 
