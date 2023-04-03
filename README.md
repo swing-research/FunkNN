@@ -4,9 +4,9 @@
 [![Paper](https://img.shields.io/badge/arxiv-report-red)](https://arxiv.org/abs/2212.14042)
 [![PWC](https://img.shields.io/badge/PWC-report-blue)](https://paperswithcode.com/paper/funknn-neural-interpolation-for-functional)
 
-This repository is the official Pytorch implementation of "[FunkNN: Neural Interpolation for Functional Generation](https://arxiv.org/abs/2212.14042)".
+This repository is the official Pytorch implementation of "[FunkNN: Neural Interpolation for Functional Generation](https://openreview.net/forum?id=BT4N_v7CLrk)" in ICLR 2023.
 
-| [**Project Page**]()  | 
+| [**Project Page**](https://sada.dmi.unibas.ch/en/research/implicit-neural-representation)  | 
 
 
 <p float="center">
@@ -57,14 +57,16 @@ python3 IP_solver.py
 ```
 
 ## Citation
-If you find the code or our dataset useful in your research, please consider citing the paper.
+If you find the code useful in your research, please consider citing the paper.
 
 ```
-@article{khorashadizadeh2022funknn,
-  title={FunkNN: Neural Interpolation for Functional Generation},
-  author={Khorashadizadeh, AmirEhsan and Chaman, Anadi and Debarnot, Valentin and Harandi, Dokmani{\'c}, Ivan},
-  journal={arXiv preprint arXiv:2212.14042},
-  year={2022}
+@inproceedings{
+khorashadizadeh2023funknn,
+title={Funk{NN}: Neural Interpolation for Functional Generation},
+author={AmirEhsan Khorashadizadeh and Anadi Chaman and Valentin Debarnot and Ivan Dokmani{\'c}},
+booktitle={The Eleventh International Conference on Learning Representations },
+year={2023},
+url={https://openreview.net/forum?id=BT4N_v7CLrk}
 }
 ```
 
