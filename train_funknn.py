@@ -63,8 +63,8 @@ print('---> image size: {}'.format(image_size))
 train_dataset = Dataset_loader(dataset = 'train' ,size = (image_size,image_size), c = c)
 test_dataset = Dataset_loader(dataset = 'test' ,size = (config.max_scale*image_size,config.max_scale*image_size), c = c)
 
-train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, num_workers=24, shuffle = True)
-test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=100, num_workers=24)
+train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, num_workers=32, shuffle = True)
+test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=100, num_workers=32)
 
 ntrain = len(train_loader.dataset)
 n_test = len(test_loader.dataset)
@@ -72,7 +72,7 @@ n_test = len(test_loader.dataset)
 n_ood = 0
 if ood_analysis:
     ood_dataset = Dataset_loader(dataset = 'ood',size = (2*image_size,2*image_size), c = c)
-    ood_loader = torch.utils.data.DataLoader(ood_dataset, batch_size=300, num_workers=24)
+    ood_loader = torch.utils.data.DataLoader(ood_dataset, batch_size=300, num_workers=32)
     n_ood= len(ood_loader.dataset)
 
 print('---> Number of training, test and ood samples: {}, {}, {}'.format(ntrain,n_test, n_ood))

@@ -78,41 +78,46 @@ class FunkNN(nn.Module):
         super(FunkNN, self).__init__()
         
         self.c = c
-        w0 = 30.0
+        self.w_size = 9 # patch size
 
-        CNNs = []
-        prev_ch = self.c
-        num_layers = [64,64,64,64,64,64,64,64]
-        for i in range(len(num_layers)):
-            CNNs.append(nn.Conv2d(prev_ch, num_layers[i] ,2,
-                padding = 'same', bias = True))
-            prev_ch = num_layers[i]
+        if config.network == 'CNN':
+            CNNs = []
+            prev_ch = self.c
+            num_layers = [64,64,64,64,64,64,64,64]
+            for i in range(len(num_layers)):
+                CNNs.append(nn.Conv2d(prev_ch, num_layers[i] ,2,
+                    padding = 'same', bias = True))
+                prev_ch = num_layers[i]
 
-        self.CNNs = nn.ModuleList(CNNs)
-
-        self.maxpool = nn.MaxPool2d(2, 2)
+            self.CNNs = nn.ModuleList(CNNs)
+            self.maxpool = nn.MaxPool2d(2, 2)
+            prev_unit = 2 * 2 * 64
+            hidden_units = [64,64,64,self.c]
         
+        if config.network == 'MLP':
+            prev_unit = self.w_size * self.w_size * self.c
+            hidden_units = [512,512,256,256,128,128,64,64,64,self.c]
+
         fcs = []
-        w = []
-        prev_unit = 2 * 2 * 64
-        hidden_units = [64,64,64,self.c]
         for i in range(len(hidden_units)):
             fcs.append(nn.Linear(prev_unit, hidden_units[i], bias = True))
             prev_unit = hidden_units[i]
 
         self.MLP = nn.ModuleList(fcs)
 
-        for i in range(len(self.MLP)):
-            w_init = torch.ones(1) * w0
-            w.append(nn.Parameter(w_init.clone().detach(), requires_grad=True))
-            w_shape = self.MLP[i].weight.data.shape
-            b_shape = self.MLP[i].bias.data.shape
-            w_std = (1 / w_shape[1]) if i==0 else (np.sqrt(6.0 / w_shape[1]) / w0)
-            # w_std = (1 / w_shape[1])
-            self.MLP[i].weight.data = (2 * torch.rand(w_shape) - 1) * w_std
-            self.MLP[i].bias.data = (2 * torch.rand(b_shape) - 1) * w_std
-        self.w = nn.ParameterList(w)
-
+        if config.activation == 'sin':
+            w0 = 30.0
+            w = []
+            for i in range(len(self.MLP)):
+                w_init = torch.ones(1) * w0
+                w.append(nn.Parameter(w_init.clone().detach(), requires_grad=True))
+                w_shape = self.MLP[i].weight.data.shape
+                b_shape = self.MLP[i].bias.data.shape
+                w_std = (1 / w_shape[1]) if i==0 else (np.sqrt(6.0 / w_shape[1]) / w0)
+                # w_std = (1 / w_shape[1])
+                self.MLP[i].weight.data = (2 * torch.rand(w_shape) - 1) * w_std
+                self.MLP[i].bias.data = (2 * torch.rand(b_shape) - 1) * w_std
+            self.w = nn.ParameterList(w)
 
         # Adaptive receptive field
         ws1 = torch.ones(1)
@@ -272,8 +277,9 @@ class FunkNN(nn.Module):
         # Coordinate shape: b X b_pixels X 2
         # image shape: b X b_pixels X c X h X w
         d_coordinate = coordinate * 2
-        b , b_pixels , c , h , w = image.shape
-        crop_size = 2 * output_size/h
+        b , c , h , w = image.shape
+        b_pixels = coordinate.shape[1]
+        crop_size = 2 * (output_size-1)/(h-1)
         x_m_x = crop_size/2
         x_p_x = d_coordinate[:,:,1]
         y_m_y = crop_size/2
@@ -284,11 +290,12 @@ class FunkNN(nn.Module):
         theta[:,:,1,1] = y_m_y * self.ws2
         theta[:,:,1,2] = y_p_y
 
-        image = image.reshape(b*b_pixels , c , h , w)
         theta = theta.reshape(b*b_pixels , 2 , 3)
 
         f = F.affine_grid(theta, size=(b * b_pixels, c, output_size, output_size), align_corners=False)
-        
+        f = f.reshape(b, b_pixels , output_size, output_size,2)
+        f = f.reshape(b, b_pixels * output_size, output_size,2)
+
         if config.interpolation_kernel == 'bicubic':
             # Non-differentiable grid_sampler
             image_cropped = F.grid_sample(image, f, mode = 'bicubic', align_corners=False, padding_mode='reflection')
@@ -299,42 +306,45 @@ class FunkNN(nn.Module):
             # mode = 'cubic_conv' is slow but can be used for solving PDEs with first- and second-order derivatives.
             image_cropped = self.grid_sample_customized(image, f, mode = config.interpolation_kernel)
 
+        image_cropped = image_cropped.permute(0,2,3,1)
+        image_cropped = image_cropped.reshape(b, b_pixels , output_size, output_size,c)
+        image_cropped = image_cropped.reshape(b* b_pixels , output_size, output_size,c)
+        image_cropped = image_cropped.permute(0,3,1,2)
+
         return image_cropped
 
        
     def forward(self, coordinate, x):
         b , b_pixels , _ = coordinate.shape
-        x = torch.unsqueeze(x, dim = 1)
-        x =x.expand(-1, b_pixels , -1, -1, -1)
 
-        w_size = 9 # patch size
-        x = self.cropper(x , coordinate , output_size = w_size)
+        x = self.cropper(x , coordinate , output_size = self.w_size)
         mid_pix = x[:,:,4,4] # Centeric pixel
 
-        for i in range(len(self.CNNs)):
+        if config.network == 'CNN':
+            for i in range(len(self.CNNs)):
 
-            x_temp = x
-            x = self.CNNs[i](x)
-            
-            if config.interpolation_kernel == 'bicubic': 
-                x = F.relu(x)
-            else:
-                x = torch.sin(x) # Sin activations for more accurate derivatives
+                x_temp = x
+                x = self.CNNs[i](x)
+                
+                if config.activation == 'sin': 
+                    x = torch.sin(x) # Sin activations for more accurate derivatives
+                else:
+                    x = F.relu(x)
 
-            if i % 4 == 3:
-                x = self.maxpool(x)
-            else:
-                if not (i ==0 or i == len(self.CNNs)-1):
-                    x = x+x_temp # Internal skip connection
+                if i % 4 == 3:
+                    x = self.maxpool(x)
+                else:
+                    if not (i ==0 or i == len(self.CNNs)-1):
+                        x = x+x_temp # Internal skip connection
 
         x = torch.flatten(x, 1)
 
         for i in range(len(self.MLP)-1):
-            if config.interpolation_kernel == 'bicubic':
-                x = F.relu(self.MLP[i](x))
-            else:
+            if config.activation == 'sin':
                 x = torch.sin(self.w[i] * self.MLP[i](x)) # Sin activations for more accurate derivatives
-
+            else:
+                x = F.relu(self.MLP[i](x))
+                
         x = self.MLP[-1](x) + mid_pix # external skip connection to the centric pixel
         x = x.reshape(b, b_pixels, -1)
 
